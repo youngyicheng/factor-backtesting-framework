@@ -17,10 +17,6 @@ class Universe(object, metaclass=ABCMeta):
     def get_symbols(self, trade_date: Union[str, datetime, pd.Timestamp]):
         raise NotImplementedError
 
-    @abstractmethod
-    def data(self):
-        pass
-
 
 class StaticUniverse(Universe):
     def __init__(self, symbols: Iterable[str]):
@@ -51,7 +47,7 @@ class IndexComponents(object):
     def _get_components(self) -> List[str]:
         end = datetime.strptime(self.in_date, "%Y%m%d")
         start = end - relativedelta(months=1)
-        df = pro.index_weight(index_code=self.index_code, start_date=start.strftime("%Y%m%d"), end_date=end.strftime("%Y%m%d"))
+        df = pro.index_weight(index_code='399300.SZ', start_date=start.strftime("%Y%m%d"), end_date=end.strftime("%Y%m%d"))
         rlt = df[df['trade_date'] == max(np.unique(df['trade_date']))]['con_code']
         rlt = sorted(list(rlt.apply(lambda x: x[:-3])))
         return rlt

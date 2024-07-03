@@ -12,19 +12,22 @@ import torchqtm.op.functional as F
 
 class BaseTester(object, metaclass=ABCMeta):
     def __init__(self,
-                 env: BackTestEnv = None):
+                 env: BackTestEnv = None,
+                 universe: Universe = None):
         self.metrics = None
         self.results = None
         self.env = env
         self._check_env()
+        self.universe = universe
+        if isinstance(universe, Universe):
+            self.symbols = universe.get_symbols()
         self.rebalance_dates = env.dates
 
     def _check_env(self):
-        ...
-        # assert '_FutureReturn' in self.env
-        # assert 'MktVal' in self.env
-        # assert 'Sector' in self.env
-        # assert 'Close' in self.env
+        assert '_FutureReturn' in self.env
+        assert 'MktVal' in self.env
+        assert 'Sector' in self.env
+        assert 'Close' in self.env
 
     def _reset(self):
         self.metrics = None
@@ -46,13 +49,10 @@ class TesterMixin:
 class BaseGroupTester(BaseTester, TesterMixin):
     def __init__(self,
                  env: BackTestEnv = None,
-                 n_groups: int = 5,
-                 exclude_suspended: bool = False,
-                 exclude_limits: bool = False):
-        super().__init__(env)
+                 universe: Universe = None,
+                 n_groups: int = 5):
+        super().__init__(env, universe)
         self.n_groups = n_groups
-        self.exclude_limits = exclude_limits
-        self.exclude_suspended = exclude_suspended
         self.returns = None
 
     def _reset(self):
@@ -106,8 +106,9 @@ class BaseIcTester(BaseTester, TesterMixin):
 class GroupTester01(BaseGroupTester):
     def __init__(self,
                  env: BackTestEnv,
+                 universe: Universe,
                  n_groups: int = 5):
-        super().__init__(env, n_groups)
+        super().__init__(env, universe, n_groups)
 
     def run_backtest(self, modified_factor) -> None:
         assert modified_factor.shape == self.env['Close'].shape

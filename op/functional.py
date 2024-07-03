@@ -1,12 +1,12 @@
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import LinearRegression
+
 from ..config import __OP_MODE__
 from typing import overload
 from .algos import rank_1d, rank_2d
 from scipy.stats import norm
 import talib
-import numba
 
 # Arithmetic Operators
 
@@ -100,9 +100,9 @@ def nan_out(X, lower=-0.1, upper=0.1):
 
 def purify(X):
     rlt = np.where(np.isinf(X), np.nan, X)
-    if isinstance(X, np.ndarray):
+    if isinstance(rlt, np.ndarray):
         return rlt
-    elif isinstance(X, pd.DataFrame):
+    elif isinstance(rlt, pd.DataFrame):
         return pd.DataFrame(rlt, index=X.index, columns=X.columns)
 
 
@@ -140,9 +140,9 @@ def densify(X):
 # TODO: 1231
 def if_else(condition, value_if_true, value_if_false):
     rlt = np.where(condition, value_if_true, value_if_false)
-    if isinstance(condition, np.ndarray):
+    if isinstance(rlt, np.ndarray):
         return rlt
-    elif isinstance(condition, pd.DataFrame):
+    elif isinstance(rlt, pd.DataFrame):
         return pd.DataFrame(rlt, index=condition.index, columns=condition.columns)
 
 
@@ -824,25 +824,3 @@ def trade_when(trigger: np.ndarray[bool],
         return pd.Series(rlt, index=alpha.index, name=alpha.name)
     elif isinstance(alpha, pd.DataFrame):
         return pd.DataFrame(rlt, index=alpha.index, columns=alpha.columns)
-
-
-
-# operator below needs to be accelerated when processing a gp learning
-
-@jit(nopython=True)
-def industryNeutral(factor, df_industry):
-    adj_factors = np.full_like(factor, np.nan)
-    for i in range(factor.shape[0]):
-        y = factor[i]
-        x = df_industry[i]
-        no_nan = ~np.isnan(y)
-        beta = y[no_nan].dot(x[no_nan]) / x[no_nan].sum(0)
-        beta[np.isnan(beta)] = 0
-        adj_factors[i][no_nan] = y[no_nan] - (x[no_nan].dot(beta))
-    return adj_factors
-
-
-def max_min_norm(df):
-    # data = (df.values - df.mean(1).values.reshape(-1, 1)) / df.std(1).replace(0, 1).values.reshape(-1, 1)
-    data = df.subtract(df.min(1), axis=0).divide(df.max(1) - df.min(1), axis=0)
-    return data

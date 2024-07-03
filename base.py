@@ -146,7 +146,7 @@ class BaseAlpha(BaseOperator, metaclass=ABCMeta):
         self.kwargs = kwargs
         self.data = None
         self.type = None
-        self.Enabled = True  # default to be used
+        self.USED = True  # default to be used
 
     @abstractmethod
     def forward(self, *args, **kwargs):
